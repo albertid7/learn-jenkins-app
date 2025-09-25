@@ -5,25 +5,17 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:22.20-alpine3.21'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    echo "=== Environment Information ==="
                     ls -la
                     node --version
                     npm --version
-                    echo "=== Cleaning npm cache ==="
-                    npm cache clean --force
-                    echo "=== Installing dependencies ==="
-                    npm ci --verbose
-                    echo "=== Verifying react-scripts installation ==="
-                    npm list react-scripts
-                    echo "=== Building application ==="
+                    npm ci
                     npm run build
-                    echo "=== Build output ==="
                     ls -la
                 '''
             }
@@ -31,7 +23,7 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:22.20-alpine3.21'
                     reuseNode true
                 }
             }
