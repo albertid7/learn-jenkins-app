@@ -11,13 +11,12 @@ pipeline {
             }
             steps {
                 sh '''
+                    set -ex
+                    export NPM_CONFIG_CACHE=$(pwd)/.npm-cache
                     ls -la
                     node --version
                     npm --version
-                    npm cache clean --force
-                    rm -rf node_modules
-                    rm -rf package-lock.json
-                    npm install
+                    npm ci
                     npm run build
                     ls -la
                 '''
