@@ -5,7 +5,7 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:18'  // Using standard node image instead of alpine
                     reuseNode true
                 }
             }
@@ -15,23 +15,27 @@ pipeline {
                     ls -la
                     node --version
                     npm --version
-                    echo "=== Cleaning npm cache ==="
+                    echo "=== Cleaning npm cache and node_modules ==="
                     npm cache clean --force
-                    echo "=== Installing dependencies ==="
-                    npm ci --verbose
+                    rm -rf node_modules
+                    echo "=== Installing dependencies with legacy peer deps ==="
+                    npm ci --legacy-peer-deps --verbose
                     echo "=== Verifying react-scripts installation ==="
-                    npm list react-scripts
+                    npm list react-scripts || echo "react-scripts not found in npm list"
+                    which react-scripts || echo "react-scripts not found in PATH"
+                    echo "=== Checking node_modules ==="
+                    ls -la node_modules/.bin/ | grep react-scripts || echo "react-scripts binary not found"
                     echo "=== Building application ==="
                     npm run build
                     echo "=== Build output ==="
-                    ls -la
+                    ls -la build/
                 '''
             }
         }
         stage('Test') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:18'  // Using standard node image instead of alpine
                     reuseNode true
                 }
             }
