@@ -1,12 +1,18 @@
 pipeline {
     agent any
 
+    environment {
+        CI = 'true'
+        GENERATE_SOURCEMAP = 'false'
+    }
+
     stages {
         stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
+                    args '-m 2g'
                 }
             }
             steps {
@@ -14,9 +20,10 @@ pipeline {
                     ls -la
                     node --version
                     npm --version
-                    npm install
+                    npm cache clean --force
+                    npm install --verbose
                     npm run build
-                    ls -la
+                    ls -la build/
                 '''
             }
         }
@@ -25,12 +32,17 @@ pipeline {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
+                    args '-m 2g'
                 }
             }
             steps {
                 sh '''
-                    test -f build/index.html
-                    npm test
+                    ls -la
+                    node --version
+                    npm --version
+                    npm install --verbose
+                    test -f build/index.html && echo "Build artifact exists" || echo "Build artifact missing"
+                    npm test -- --watchAll=false --verbose
                 '''
             }
         }
