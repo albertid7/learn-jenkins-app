@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Development service
+  react-app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_VERSION=${REACT_APP_VERSION:-1.0.0}
+    stdin_open: true
+    tty: true
+
+  # Production build service
+  react-app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - REACT_APP_VERSION=${REACT_APP_VERSION:-1.0.0}
+
+  # Note: Using existing Jenkins instance from Docker Desktop
+  # Jenkins service removed - using your existing Jenkins setup
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CI=true
+      - REACT_APP_VERSION=${REACT_APP_VERSION:-1.0.0}
+    command: npm test -- --coverage --watchAll=false
+
+  # E2E test service
+  e2e-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CI=true
+      - REACT_APP_VERSION=${REACT_APP_VERSION:-1.0.0}
+    depends_on:
+      - react-app-prod
+    command: npx playwright test
+
+# Volumes section - jenkins_home removed since using existing Jenkins
